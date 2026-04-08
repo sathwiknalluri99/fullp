@@ -125,6 +125,57 @@ public class EnrollmentController {
         }
     }
 
+    // Admin registering a student for a course
+    @PostMapping("/admin/register")
+    public ResponseEntity<Map<String, Object>> adminRegisterForCourse(@RequestBody Map<String, Object> payload) {
+        Object studentIdObj = payload.get("studentId");
+        Object courseIdObj = payload.get("courseId");
+
+        if (studentIdObj == null || courseIdObj == null) {
+            return ResponseEntity.badRequest().body(Map.of("message", "studentId and courseId are required"));
+        }
+
+        Long studentId = Long.valueOf(studentIdObj.toString());
+        Long courseId = Long.valueOf(courseIdObj.toString());
+
+        Optional<User> studentOpt = userRepository.findById(studentId);
+        Optional<Course> courseOpt = courseRepository.findById(courseId);
+
+        if (!studentOpt.isPresent() || !courseOpt.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        User student = studentOpt.get();
+        Course course = courseOpt.get();
+
+        // Check if already enrolled
+        if (enrollmentRepository.existsByStudentAndCourse(student, course)) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Student is already enrolled in this course"));
+        }
+
+        try {
+            Enrollment enrollment = new Enrollment(student, course);
+            Enrollment saved = enrollmentRepository.save(enrollment);
+
+            // Auto-initialize a Grades entry
+            if (gradesRepository.findByStudentAndCourse(student, course).isEmpty()) {
+                Grades grades = new Grades(student, course);
+                gradesRepository.save(grades);
+            }
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Successfully enrolled student in course",
+                    "enrollmentId", saved.getId()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "Error enrolling student: " + e.getMessage()));
+        }
+    }
+
+
     // Drop a course
     @PostMapping("/{enrollmentId}/drop")
     public ResponseEntity<Map<String, String>> dropCourse(@PathVariable Long enrollmentId) {

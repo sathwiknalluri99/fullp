@@ -47,6 +47,9 @@ public class User {
 
     @Column(nullable = false)
     private boolean active = true;
+    
+    @Column(name = "is_verified", nullable = false)
+    private boolean isVerified = false;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -105,6 +108,9 @@ public class User {
 
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
+
+    public boolean isVerified() { return isVerified; }
+    public void setVerified(boolean verified) { isVerified = verified; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

@@ -2,6 +2,7 @@ package com.erp.backend.controller;
 
 import com.erp.backend.entity.User;
 import com.erp.backend.service.UserService;
+import com.erp.backend.service.OtpService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,9 +27,17 @@ public class AuthController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private OtpService otpService;
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         try {
+            User user = userService.findByUsername(loginRequest.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Authenticate user without checking verification status
+            // OTP verification is only required during signup/registration
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginRequest.getUsername(),
@@ -37,9 +46,6 @@ public class AuthController {
             );
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            User user = userService.findByUsername(loginRequest.getUsername())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
 
             String token = Base64.getEncoder().encodeToString(
                     (loginRequest.getUsername() + ":" + loginRequest.getPassword()).getBytes(StandardCharsets.UTF_8)
@@ -72,21 +78,63 @@ public class AuthController {
             user.setRole(User.Role.valueOf(registerRequest.getRole().toUpperCase()));
 
             User savedUser = userService.createUser(user);
-            String token = Base64.getEncoder().encodeToString(
-                    (savedUser.getUsername() + ":" + registerRequest.getPassword()).getBytes(StandardCharsets.UTF_8)
-            );
+            
+            // Generate and send OTP
+            otpService.generateAndSendOtp(savedUser.getEmail());
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("user", savedUser);
-            response.put("token", token);
-            response.put("message", "User registered successfully");
+            response.put("message", "User registered successfully. Please check your email for verification code.");
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<?> verifyOtp(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String otpCode = request.get("otp");
+
+        boolean isValid = otpService.validateOtp(email, otpCode);
+
+        if (isValid) {
+            userService.findByEmail(email).ifPresent(foundUser -> {
+                foundUser.setVerified(true);
+                userService.updateUser(foundUser.getId(), foundUser);
+            });
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Email verified successfully. You can now login.");
+            return ResponseEntity.ok(response);
+        } else {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "Invalid or expired OTP");
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @PostMapping("/resend-otp")
+    public ResponseEntity<?> resendOtp(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        
+        try {
+            otpService.generateAndSendOtp(email);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "OTP resent successfully");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "Error resending OTP");
             return ResponseEntity.badRequest().body(response);
         }
     }

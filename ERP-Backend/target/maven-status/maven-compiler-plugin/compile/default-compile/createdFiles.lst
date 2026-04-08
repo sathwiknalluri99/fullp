@@ -1,3 +1,4 @@
+com\erp\backend\controller\DashboardController.class
 com\erp\backend\repository\AssignmentRepository.class
 com\erp\backend\config\BearerTokenAuthenticationFilter.class
 com\erp\backend\controller\AdminCourseController.class
@@ -7,19 +8,23 @@ com\erp\backend\service\CourseService.class
 com\erp\backend\service\GradesService.class
 com\erp\backend\entity\User.class
 com\erp\backend\service\AssignmentService.class
+com\erp\backend\service\OtpService.class
 com\erp\backend\entity\AssignmentSubmission.class
 com\erp\backend\repository\UserRepository.class
 com\erp\backend\entity\Assignment.class
 com\erp\backend\entity\Attendance.class
+com\erp\backend\service\EmailService.class
 com\erp\backend\repository\AssignmentSubmissionRepository.class
 com\erp\backend\repository\EnrollmentRepository.class
 com\erp\backend\entity\User$Role.class
+com\erp\backend\controller\AssignmentController.class
 com\erp\backend\controller\EnrollmentController.class
 com\erp\backend\repository\GradesRepository.class
 com\erp\backend\controller\GradesController.class
 com\erp\backend\entity\Course.class
 com\erp\backend\exception\GlobalExceptionHandler.class
 com\erp\backend\service\UserService.class
+com\erp\backend\controller\AssignmentController$AssignmentRequest.class
 com\erp\backend\controller\AttendanceController.class
 com\erp\backend\controller\UserController.class
 com\erp\backend\dto\CgpaResponseDto.class
@@ -28,6 +33,7 @@ com\erp\backend\entity\Enrollment$EnrollmentStatus.class
 com\erp\backend\service\AttendanceService.class
 com\erp\backend\DataSeeder.class
 com\erp\backend\controller\AuthController$RegisterRequest.class
+com\erp\backend\repository\OtpRepository.class
 com\erp\backend\repository\AttendanceRepository.class
 com\erp\backend\JavaErpBackendApplication.class
 com\erp\backend\config\SecurityConfig.class
@@ -37,3 +43,4 @@ com\erp\backend\controller\AuthController$LoginRequest.class
 com\erp\backend\controller\AuthController.class
 com\erp\backend\entity\AssignmentSubmission$SubmissionStatus.class
 com\erp\backend\entity\Grades.class
+com\erp\backend\entity\Otp.class
